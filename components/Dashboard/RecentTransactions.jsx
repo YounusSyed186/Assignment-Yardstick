@@ -50,41 +50,44 @@ export default function RecentTransactions() {
           </Button>
         </Link>
       </CardHeader>
+
       <CardContent className="space-y-4">
         {recentTransactions.map((transaction, index) => {
           const category = getCategoryByName(transaction.category)
           return (
-            <div 
-              key={transaction.id} 
-              className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 transition-colors animate-fade-in"
+            <div
+              key={transaction.id}
+              className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 rounded-lg hover:bg-gray-50 transition-colors animate-fade-in gap-2"
               style={{ animationDelay: `${index * 100}ms` }}
             >
-              <div className="flex items-center space-x-3">
-                <div className={`p-2 rounded-full ${transaction.type === 'expense' ? 'bg-red-100' : 'bg-green-100'}`}>
+              {/* Left Side: Icon + Info */}
+              <div className="flex items-start sm:items-center space-x-3 w-full sm:w-auto">
+                <div className={`p-2 rounded-full shrink-0 ${transaction.type === 'expense' ? 'bg-red-100' : 'bg-green-100'}`}>
                   {transaction.type === 'expense' ? (
                     <ArrowUpRight className="h-4 w-4 text-red-600" />
                   ) : (
                     <ArrowDownRight className="h-4 w-4 text-green-600" />
                   )}
                 </div>
-                <div>
-                  <p className="font-medium text-gray-900">{transaction.description}</p>
-                  <div className="flex items-center space-x-2 mt-1">
-                    <Badge 
-                      variant="secondary" 
-                      className="text-xs"
-                      style={{ 
-                        backgroundColor: category?.color + '20', 
-                        color: category?.color 
+                <div className="min-w-0">
+                  <p className="font-medium text-sm sm:text-base text-gray-900 truncate">{transaction.description}</p>
+                  <div className="flex flex-wrap items-center gap-2 mt-1 text-xs sm:text-sm">
+                    <Badge
+                      variant="secondary"
+                      style={{
+                        backgroundColor: category?.color + '20',
+                        color: category?.color
                       }}
                     >
                       {category?.icon} {transaction.category}
                     </Badge>
-                    <span className="text-xs text-gray-500">{formatDate(transaction.date)}</span>
+                    <span className="text-gray-500">{formatDate(transaction.date)}</span>
                   </div>
                 </div>
               </div>
-              <div className={`font-bold ${transaction.type === 'expense' ? 'text-red-600' : 'text-green-600'}`}>
+
+              {/* Right Side: Amount */}
+              <div className={`font-bold text-sm sm:text-base ${transaction.type === 'expense' ? 'text-red-600' : 'text-green-600'}`}>
                 {transaction.type === 'expense' ? '-' : '+'}${transaction.amount.toFixed(2)}
               </div>
             </div>

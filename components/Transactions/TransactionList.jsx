@@ -129,12 +129,12 @@ export default function TransactionList() {
               return (
                 <div
                   key={transaction._id}
-                  className="flex items-center justify-between p-4 rounded-lg border border-gray-200 hover:bg-gray-50 transition-all duration-200 animate-fade-in"
+                  className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 rounded-lg border border-gray-200 hover:bg-gray-50 transition-all duration-200 animate-fade-in"
                   style={{ animationDelay: `${index * 50}ms` }}
                 >
-                  <div className="flex items-center space-x-4 flex-1">
+                  <div className="flex items-start sm:items-center space-x-4 w-full">
                     <div
-                      className={`p-2 rounded-full ${
+                      className={`p-2 rounded-full shrink-0 ${
                         transaction.type === 'expense' ? 'bg-red-100' : 'bg-green-100'
                       }`}
                     >
@@ -142,11 +142,10 @@ export default function TransactionList() {
                     </div>
 
                     <div className="flex-1">
-                      <h3 className="font-medium text-gray-900">{transaction.description}</h3>
-                      <div className="flex items-center space-x-3 mt-1">
+                      <h3 className="font-medium text-gray-900 text-base sm:text-lg">{transaction.description}</h3>
+                      <div className="flex flex-wrap items-center gap-2 mt-1 text-sm">
                         <Badge
                           variant="secondary"
-                          className="text-xs"
                           style={{
                             backgroundColor: category?.color + '20',
                             color: category?.color,
@@ -154,10 +153,9 @@ export default function TransactionList() {
                         >
                           {transaction.category}
                         </Badge>
-                        <span className="text-sm text-gray-500">{formatDate(transaction.date)}</span>
+                        <span className="text-gray-500">{formatDate(transaction.date)}</span>
                         <Badge
                           variant={transaction.type === 'expense' ? 'destructive' : 'default'}
-                          className="text-xs"
                         >
                           {transaction.type}
                         </Badge>
@@ -165,9 +163,9 @@ export default function TransactionList() {
                     </div>
                   </div>
 
-                  <div className="flex items-center space-x-3">
+                  <div className="flex items-center justify-between sm:justify-end space-x-4 mt-4 sm:mt-0">
                     <div
-                      className={`font-bold text-lg ${
+                      className={`font-bold text-base sm:text-lg ${
                         transaction.type === 'expense' ? 'text-red-600' : 'text-green-600'
                       }`}
                     >

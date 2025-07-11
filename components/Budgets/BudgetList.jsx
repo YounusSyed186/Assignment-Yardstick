@@ -14,23 +14,22 @@ export default function BudgetList() {
   const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().slice(0, 7))
 
   const handleDelete = (id, category) => {
-  if (window.confirm(`Are you sure you want to delete the budget for ${category}?`)) {
-    deleteBudget(id)
-    toast({
-      title: 'Deleted',
-      description: 'Budget deleted successfully.',
-    })
+    if (window.confirm(`Are you sure you want to delete the budget for ${category}?`)) {
+      deleteBudget(id)
+      toast({
+        title: 'Deleted',
+        description: 'Budget deleted successfully.',
+      })
+    }
   }
-}
-
 
   const filteredBudgets = budgets.filter(budget => budget.month === selectedMonth)
 
   const getBudgetInsights = (budget) => {
     const actualSpent = transactions
-      .filter(t => 
-        t.category === budget.category && 
-        t.date.startsWith(budget.month) && 
+      .filter(t =>
+        t.category === budget.category &&
+        t.date.startsWith(budget.month) &&
         t.type === 'expense'
       )
       .reduce((sum, t) => sum + t.amount, 0)
@@ -40,7 +39,7 @@ export default function BudgetList() {
 
     let status = 'on-track'
     let message = `You're on track with your ${budget.category} budget.`
-    
+
     if (percentage >= 100) {
       status = 'over-budget'
       message = `You've exceeded your ${budget.category} budget by $${Math.abs(remaining).toFixed(2)}.`
@@ -80,19 +79,17 @@ export default function BudgetList() {
   return (
     <Card className="bg-white/80 backdrop-blur-sm border-white/20 shadow-lg">
       <CardHeader>
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <CardTitle className="text-xl font-bold text-gray-900">Budget Overview</CardTitle>
-          <div>
-            <input
-              type="month"
-              value={selectedMonth}
-              onChange={(e) => setSelectedMonth(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
-          </div>
+          <input
+            type="month"
+            value={selectedMonth}
+            onChange={(e) => setSelectedMonth(e.target.value)}
+            className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
         </div>
       </CardHeader>
-      
+
       <CardContent>
         {filteredBudgets.length === 0 ? (
           <div className="text-center py-8">
@@ -103,31 +100,35 @@ export default function BudgetList() {
             {filteredBudgets.map((budget, index) => {
               const category = getCategoryByName(budget.category)
               const insights = getBudgetInsights(budget)
-              
+
               return (
-                <div 
+                <div
                   key={budget.id}
                   className="p-6 rounded-lg border border-gray-200 hover:shadow-md transition-all duration-200 animate-fade-in"
                   style={{ animationDelay: `${index * 100}ms` }}
                 >
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center space-x-3">
-                      <div 
-                        className="p-3 rounded-full"
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
+                    {/* Category & Budget Info */}
+                    <div className="flex items-start sm:items-center space-x-3 flex-1">
+                      <div
+                        className="p-3 rounded-full shrink-0"
                         style={{ backgroundColor: category?.color + '20' }}
                       >
                         <span className="text-xl">{category?.icon || '💰'}</span>
                       </div>
                       <div>
-                        <h3 className="font-semibold text-lg text-gray-900">{budget.category}</h3>
-                        <p className="text-sm text-gray-600">
-                          Budget: ${budget.amount.toFixed(2)} | 
-                          Spent: ${insights.actualSpent.toFixed(2)} | 
+                        <h3 className="font-semibold text-base sm:text-lg text-gray-900">
+                          {budget.category}
+                        </h3>
+                        <p className="text-sm text-gray-600 leading-snug">
+                          Budget: ${budget.amount.toFixed(2)} |{' '}
+                          Spent: ${insights.actualSpent.toFixed(2)} |{' '}
                           Remaining: ${insights.remaining.toFixed(2)}
                         </p>
                       </div>
                     </div>
-                    
+
+                    {/* Badge + Delete */}
                     <div className="flex items-center space-x-2">
                       <Badge className={getStatusColor(insights.status)}>
                         {insights.status === 'over-budget' && <AlertTriangle className="h-3 w-3 mr-1" />}

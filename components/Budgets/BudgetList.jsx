@@ -14,14 +14,15 @@ export default function BudgetList() {
   const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().slice(0, 7))
 
   const handleDelete = (id, category) => {
-    if (window.confirm(`Are you sure you want to delete the budget for ${category}?`)) {
-      deleteBudget(id)
-      toast({
-        title: 'Deleted',
-        description: 'Budget deleted successfully.',
-      })
-    }
+  if (window.confirm(`Are you sure you want to delete the budget for ${category}?`)) {
+    deleteBudget(id)
+    toast({
+      title: 'Deleted',
+      description: 'Budget deleted successfully.',
+    })
   }
+}
+
 
   const filteredBudgets = budgets.filter(budget => budget.month === selectedMonth)
 
@@ -136,7 +137,7 @@ export default function BudgetList() {
                         variant="ghost"
                         size="sm"
                         className="text-red-600 hover:bg-red-50"
-                        onClick={() => handleDelete(budget.id, budget.category)}
+                        onClick={() => handleDelete(budget._id, budget.category)}
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>

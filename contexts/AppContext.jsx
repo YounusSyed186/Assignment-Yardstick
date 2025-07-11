@@ -18,8 +18,11 @@ const appReducer = (state, action) => {
     case "DELETE_TRANSACTION":
       return {
         ...state,
-        transactions: state.transactions.filter((t) => t._id !== action.payload),
+        transactions: state.transactions.filter(
+          (tx) => tx._id !== action.payload
+        ),
       };
+
     case "SET_BUDGETS":
       return { ...state, budgets: action.payload };
     case "ADD_BUDGET":
@@ -97,6 +100,8 @@ export function AppProvider({ children }) {
   };
 
   const deleteTransaction = async (id) => {
+    if (!id) return console.error("No ID provided");
+
     try {
       const res = await fetch(`/api/transactions/${id}`, {
         method: "DELETE",
@@ -106,8 +111,7 @@ export function AppProvider({ children }) {
 
       dispatch({ type: "DELETE_TRANSACTION", payload: id });
     } catch (err) {
-      console.error(err);
-      throw err;
+      console.error("Error deleting transaction:", err);
     }
   };
 
@@ -140,7 +144,10 @@ export function AppProvider({ children }) {
       if (!res.ok) throw new Error("Failed to update budget");
 
       const updatedBudget = await res.json();
-      dispatch({ type: "UPDATE_BUDGET", payload: { id, updates: updatedBudget } });
+      dispatch({
+        type: "UPDATE_BUDGET",
+        payload: { id, updates: updatedBudget },
+      });
     } catch (err) {
       console.error(err);
       throw err;
@@ -148,17 +155,23 @@ export function AppProvider({ children }) {
   };
 
   const deleteBudget = async (id) => {
+    if (!id) {
+      console.error("No ID provided to deleteBudget");
+      return;
+    }
+
     try {
-      const res = await fetch(`/api/budgets/${id}`, {
-        method: "DELETE",
-      });
+      const res = await fetch(`/api/budgets/${id}`, { method: "DELETE" });
 
-      if (!res.ok) throw new Error("Failed to delete budget");
+      if (!res.ok) {
+        const errorText = await res.text();
+        console.error("Delete failed:", res.status, errorText);
+        throw new Error("Failed to delete budget");
+      }
 
-      dispatch({ type: "DELETE_BUDGET", payload: id });
+      // dispatch your reducer or update state here if needed
     } catch (err) {
-      console.error(err);
-      throw err;
+      console.error("Delete error:", err.message);
     }
   };
 

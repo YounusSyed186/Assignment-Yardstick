@@ -13,17 +13,21 @@ export default async function handler(req, res) {
 
     const { name, email, password } = req.body || {}
     if (!name || !email || !password) {
+      console.warn('[API /auth/signup] Missing required fields');
       return res.status(400).json({ message: 'Missing required fields: name, email, password' })
     }
 
+    console.log('[API /auth/signup] Signup attempt for:', email);
     const existing = await User.findOne({ email: email.toLowerCase().trim() })
     if (existing) {
+      console.warn('[API /auth/signup] Email already exists:', email);
       return res.status(409).json({ message: 'Email is already registered' })
     }
 
     const hashed = await bcrypt.hash(password, 10)
     const user = await User.create({ name, email: email.toLowerCase().trim(), password: hashed })
-
+    
+    console.log('[API /auth/signup] User created successfully:', email);
     return res.status(201).json({ id: user._id, name: user.name, email: user.email })
   } catch (err) {
     console.error('/api/auth/signup error:', err)

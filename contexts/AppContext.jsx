@@ -60,39 +60,66 @@ export function AppProvider({ children }) {
   const getAuthHeaders = () => {
     if (typeof window === 'undefined') return {}
     const token = localStorage.getItem('auth_token')
-    return token ? { Authorization: `Bearer ${token}` } : {}
+    if (token) {
+      console.log('[API] Adding auth token to headers:', token.substring(0, 20) + '...')
+      return { Authorization: `Bearer ${token}` }
+    }
+    console.log('[API] No token available for headers')
+    return {}
   }
 
   // Helper function to safely parse JSON responses
   const safeJson = async (res) => {
     if (!res.ok) {
-      let errorMsg = res.statusText || 'Request failed';
+      let errorMsg = res.statusText || 'Request failed'
+      console.log(`[API] Response not ok (${res.status}), attempting to parse error`)
       try {
-        const errorData = await res.json();
-        errorMsg = errorData.message || errorMsg;
+        const errorData = await res.json()
+        errorMsg = errorData.message || errorMsg
       } catch {
         // If not JSON, use status text
+        console.log('[API] Error response is not JSON')
       }
-      throw new Error(`HTTP ${res.status}: ${errorMsg}`);
+      const fullError = `HTTP ${res.status}: ${errorMsg}`
+      console.error('[API] Request failed:', fullError)
+      throw new Error(fullError)
     }
-    return await res.json();
+    return await res.json()
   };
 
   // Fetch all data on mount
   useEffect(() => {
     const fetchData = async () => {
+  // Fetch all data on mount
+  useEffect(() => {
+    const fetchData = async () => {
       dispatch({ type: "SET_LOADING", payload: true });
       try {
+        console.log('[AppContext] Fetching initial data (transactions & budgets)')
         const [transactionsRes, budgetsRes] = await Promise.all([
-          fetch("/api/transactions", { headers: { ...getAuthHeaders() } }),
-          fetch("/api/budgets", { headers: { ...getAuthHeaders() } }),
+          fetch("/api/transactions", { 
+            headers: { ...getAuthHeaders() },
+            credentials: 'include',
+          }),
+          fetch("/api/budgets", { 
+            headers: { ...getAuthHeaders() },
+            credentials: 'include',
+          }),
         ]);
         const transactions = await safeJson(transactionsRes);
         const budgets = await safeJson(budgetsRes);
-        dispatch({ type: "SET_TRANSACTIONS", payload: transactions });
-        dispatch({ type: "SET_BUDGETS", payload: budgets });
+        
+        // Ensure arrays for safety
+        const transactionsArray = Array.isArray(transactions) ? transactions : [];
+        const budgetsArray = Array.isArray(budgets) ? budgets : [];
+        
+        dispatch({ type: "SET_TRANSACTIONS", payload: transactionsArray });
+        dispatch({ type: "SET_BUDGETS", payload: budgetsArray });
+        console.log(`[AppContext] Data fetched: ${transactionsArray.length} transactions, ${budgetsArray.length} budgets`)
       } catch (err) {
-        console.error("Error fetching data:", err);
+        console.error("[AppContext] Error fetching data:", err);
+        dispatch({ type: "SET_TRANSACTIONS", payload: [] });
+        dispatch({ type: "SET_BUDGETS", payload: [] });
       } finally {
         dispatch({ type: "SET_LOADING", payload: false });
       }
@@ -103,61 +130,73 @@ export function AppProvider({ children }) {
 
   const addTransaction = async (transaction) => {
     try {
+      console.log('[AppContext] Adding transaction')
       const res = await fetch("/api/transactions", {
         method: "POST",
         headers: { "Content-Type": "application/json", ...getAuthHeaders() },
         body: JSON.stringify(transaction),
+        credentials: 'include',
       });
 
-      if (!res.ok) throw new Error("Failed to add transaction");
-
-      const newTransaction = await res.json();
+      const newTransaction = await safeJson(res);
       dispatch({ type: "ADD_TRANSACTION", payload: newTransaction });
+      console.log('[AppContext] Transaction added successfully')
     } catch (err) {
-      console.error(err);
+      console.error('[AppContext] Error adding transaction:', err);
       throw err;
     }
   };
 
   const deleteTransaction = async (id) => {
-    if (!id) return console.error("No ID provided");
+    if (!id) {
+      console.error('[AppContext] No ID provided for delete');
+      return;
+    }
 
     try {
+      console.log('[AppContext] Deleting transaction:', id)
       const res = await fetch(`/api/transactions/${id}`, {
         method: "DELETE",
         headers: getAuthHeaders(),
+        credentials: 'include',
       });
 
-      if (!res.ok) throw new Error("Failed to delete transaction");
-
+      await safeJson(res);
       dispatch({ type: "DELETE_TRANSACTION", payload: id });
+      console.log('[AppContext] Transaction deleted successfully')
     } catch (err) {
-      console.error("Error deleting transaction:", err);
+      console.error('[AppContext] Error deleting transaction:', err);
+      throw err;
     }
   };
 
   const addBudget = async (budget) => {
     try {
+      console.log('[AppContext] Adding budget')
       const res = await fetch("/api/budgets", {
         method: "POST",
         headers: { "Content-Type": "application/json", ...getAuthHeaders() },
         body: JSON.stringify(budget),
+        credentials: 'include',
       });
 
       const newBudget = await safeJson(res);
       dispatch({ type: "ADD_BUDGET", payload: newBudget });
+      console.log('[AppContext] Budget added successfully')
     } catch (err) {
-      console.error(err);
+      console.error('[AppContext] Error adding budget:', err);
       throw err;
     }
   };
 
   const updateBudget = async (id, updates) => {
     try {
+      console.log('[AppContext] Updating budget:', id)
       const res = await fetch(`/api/budgets/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json", ...getAuthHeaders() },
         body: JSON.stringify(updates),
+        credentials: 'include',
       });
 
       const updatedBudget = await safeJson(res);
@@ -165,28 +204,33 @@ export function AppProvider({ children }) {
         type: "UPDATE_BUDGET",
         payload: { id, updates: updatedBudget },
       });
+      console.log('[AppContext] Budget updated successfully')
     } catch (err) {
-      console.error(err);
+      console.error('[AppContext] Error updating budget:', err);
       throw err;
     }
   };
 
   const deleteBudget = async (id) => {
     if (!id) {
-      console.error("No ID provided to deleteBudget");
+      console.error('[AppContext] No ID provided to deleteBudget');
       return;
     }
 
     try {
+      console.log('[AppContext] Deleting budget:', id)
       const res = await fetch(`/api/budgets/${id}`, {
         method: "DELETE",
         headers: getAuthHeaders(),
+        credentials: 'include',
       });
 
-      await safeJson(res); // Will throw if not ok
+      await safeJson(res);
       dispatch({ type: "DELETE_BUDGET", payload: id });
+      console.log('[AppContext] Budget deleted successfully')
     } catch (err) {
-      console.error("Delete error:", err.message);
+      console.error('[AppContext] Error deleting budget:', err.message);
+      throw err;
     }
   };
 

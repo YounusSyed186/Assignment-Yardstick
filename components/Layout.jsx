@@ -5,11 +5,12 @@ import { usePathname } from 'next/navigation'
 import { Button } from './ui/button'
 import { BarChart3, CreditCard, Target, Menu, X } from 'lucide-react'
 import { useState } from 'react'
+import { useAuth } from '../contexts/AuthContext'
 
 export default function Layout({ children }) {
   const pathname = usePathname()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-
+  const { user, logout } = useAuth()
   const navigation = [
     { name: 'Dashboard', href: '/', icon: BarChart3 },
     { name: 'Transactions', href: '/transactions', icon: CreditCard },
@@ -28,12 +29,15 @@ export default function Layout({ children }) {
       <header className="bg-white/80 backdrop-blur-md border-b border-white/20 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
+            <div className="flex items-center gap-4">
               <div className="flex-shrink-0">
                 <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
                   💰 ExpenseTracker
                 </h1>
               </div>
+              {user && (
+                <span className="hidden md:inline text-sm text-gray-600">Signed in as {user.name}</span>
+              )}
             </div>
 
             {/* Desktop Navigation */}
@@ -57,15 +61,21 @@ export default function Layout({ children }) {
               </div>
             </nav>
 
-            {/* Mobile menu button */}
-            <div className="md:hidden">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              >
-                {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-              </Button>
+            <div className="flex items-center gap-2">
+              {user && (
+                <Button variant="ghost" size="sm" onClick={logout}>
+                  Sign out
+                </Button>
+              )}
+              <div className="md:hidden">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                >
+                  {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+                </Button>
+              </div>
             </div>
           </div>
         </div>

@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import BudgetForm from "../../components/Budgets/BudgetForm";
 import BudgetList from "../../components/Budgets/BudgetList";
 import Layout from "../../components/Layout";
+import ProtectedRoute from '../../components/ProtectedRoute'
 
 export default function Budgets() {
   const [users, setUsers] = useState([]);
@@ -22,8 +23,9 @@ export default function Budgets() {
   //     });
   // }, []);
   return (
-    <Layout>
-      <div className="space-y-8">
+    <ProtectedRoute>
+      <Layout>
+        <div className="space-y-8">
         {/* Page Header */}
         <div className="text-center">
           <h1 className="text-3xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent mb-2">
@@ -40,6 +42,7 @@ export default function Budgets() {
         {/* Budget List */}
         <BudgetList />
       </div>
-    </Layout>
+      </Layout>
+    </ProtectedRoute>
   );
 }

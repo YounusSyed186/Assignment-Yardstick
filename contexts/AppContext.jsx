@@ -56,6 +56,13 @@ const initialState = {
 export function AppProvider({ children }) {
   const [state, dispatch] = useReducer(appReducer, initialState);
 
+  // Helper function to add authorization headers
+  const getAuthHeaders = () => {
+    if (typeof window === 'undefined') return {}
+    const token = localStorage.getItem('auth_token')
+    return token ? { Authorization: `Bearer ${token}` } : {}
+  }
+
   // Helper function to safely parse JSON responses
   const safeJson = async (res) => {
     if (!res.ok) {
@@ -77,8 +84,8 @@ export function AppProvider({ children }) {
       dispatch({ type: "SET_LOADING", payload: true });
       try {
         const [transactionsRes, budgetsRes] = await Promise.all([
-          fetch("/api/transactions"),
-          fetch("/api/budgets"),
+          fetch("/api/transactions", { headers: { ...getAuthHeaders() } }),
+          fetch("/api/budgets", { headers: { ...getAuthHeaders() } }),
         ]);
         const transactions = await safeJson(transactionsRes);
         const budgets = await safeJson(budgetsRes);
@@ -98,7 +105,7 @@ export function AppProvider({ children }) {
     try {
       const res = await fetch("/api/transactions", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...getAuthHeaders() },
         body: JSON.stringify(transaction),
       });
 
@@ -118,6 +125,7 @@ export function AppProvider({ children }) {
     try {
       const res = await fetch(`/api/transactions/${id}`, {
         method: "DELETE",
+        headers: getAuthHeaders(),
       });
 
       if (!res.ok) throw new Error("Failed to delete transaction");
@@ -132,7 +140,7 @@ export function AppProvider({ children }) {
     try {
       const res = await fetch("/api/budgets", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...getAuthHeaders() },
         body: JSON.stringify(budget),
       });
 
@@ -148,7 +156,7 @@ export function AppProvider({ children }) {
     try {
       const res = await fetch(`/api/budgets/${id}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...getAuthHeaders() },
         body: JSON.stringify(updates),
       });
 
@@ -170,7 +178,10 @@ export function AppProvider({ children }) {
     }
 
     try {
-      const res = await fetch(`/api/budgets/${id}`, { method: "DELETE" });
+      const res = await fetch(`/api/budgets/${id}`, {
+        method: "DELETE",
+        headers: getAuthHeaders(),
+      });
 
       await safeJson(res); // Will throw if not ok
       dispatch({ type: "DELETE_BUDGET", payload: id });

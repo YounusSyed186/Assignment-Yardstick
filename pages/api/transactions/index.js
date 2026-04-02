@@ -1,8 +1,25 @@
 import dbConnect from '../../../lib/mongodb';
 import Transaction from '../../../models/Transaction';
+import { verifyToken } from '../../../lib/auth';
+
+const getBearerToken = (req) => {
+  const authHeader = req.headers.authorization || '';
+  return authHeader.replace('Bearer ', '').trim();
+};
 
 export default async function handler(req, res) {
   await dbConnect();
+
+  const token = getBearerToken(req);
+  if (!token) {
+    return res.status(401).json({ message: 'Missing authorization token' });
+  }
+
+  try {
+    verifyToken(token);
+  } catch (err) {
+    return res.status(401).json({ message: 'Invalid or expired token' });
+  }
 
   if (req.method === 'POST') {
     try {

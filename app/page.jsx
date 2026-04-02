@@ -5,11 +5,13 @@ import CategoryPieChart from '../components/Dashboard/CategoryPieChart'
 import BudgetComparisonChart from '../components/Dashboard/BudgetComparisonChart'
 import RecentTransactions from '../components/Dashboard/RecentTransactions'
 import Layout from '../components/Layout'
+import ProtectedRoute from '../components/ProtectedRoute'
 
 export default function Dashboard() {
 
   return (
-    <Layout>
+    <ProtectedRoute>
+      <Layout>
       <div className="space-y-8">
         {/* Page Header */}
         <div className="text-center">
@@ -34,5 +36,6 @@ export default function Dashboard() {
         </div>
       </div>
     </Layout>
+  </ProtectedRoute>
   )
 }

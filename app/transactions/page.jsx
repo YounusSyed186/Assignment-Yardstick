@@ -2,11 +2,13 @@
 import TransactionForm from '../../components/Transactions/TransactionForm'
 import TransactionList from '../../components/Transactions/TransactionList'
 import Layout from '../../components/Layout'
+import ProtectedRoute from '../../components/ProtectedRoute'
 
 export default function Transactions() {
   return (
-    <Layout>
-      <div className="space-y-8">
+    <ProtectedRoute>
+      <Layout>
+        <div className="space-y-8">
         {/* Page Header */}
         <div className="text-center">
           <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mb-2">
@@ -22,5 +24,6 @@ export default function Transactions() {
         <TransactionList />
       </div>
     </Layout>
+  </ProtectedRoute>
   )
 }

@@ -56,6 +56,21 @@ const initialState = {
 export function AppProvider({ children }) {
   const [state, dispatch] = useReducer(appReducer, initialState);
 
+  // Helper function to safely parse JSON responses
+  const safeJson = async (res) => {
+    if (!res.ok) {
+      let errorMsg = res.statusText || 'Request failed';
+      try {
+        const errorData = await res.json();
+        errorMsg = errorData.message || errorMsg;
+      } catch {
+        // If not JSON, use status text
+      }
+      throw new Error(`HTTP ${res.status}: ${errorMsg}`);
+    }
+    return await res.json();
+  };
+
   // Fetch all data on mount
   useEffect(() => {
     const fetchData = async () => {
@@ -65,10 +80,8 @@ export function AppProvider({ children }) {
           fetch("/api/transactions"),
           fetch("/api/budgets"),
         ]);
-        const [transactions, budgets] = await Promise.all([
-          transactionsRes.json(),
-          budgetsRes.json(),
-        ]);
+        const transactions = await safeJson(transactionsRes);
+        const budgets = await safeJson(budgetsRes);
         dispatch({ type: "SET_TRANSACTIONS", payload: transactions });
         dispatch({ type: "SET_BUDGETS", payload: budgets });
       } catch (err) {
@@ -123,9 +136,7 @@ export function AppProvider({ children }) {
         body: JSON.stringify(budget),
       });
 
-      if (!res.ok) throw new Error("Failed to add budget");
-
-      const newBudget = await res.json();
+      const newBudget = await safeJson(res);
       dispatch({ type: "ADD_BUDGET", payload: newBudget });
     } catch (err) {
       console.error(err);
@@ -141,9 +152,7 @@ export function AppProvider({ children }) {
         body: JSON.stringify(updates),
       });
 
-      if (!res.ok) throw new Error("Failed to update budget");
-
-      const updatedBudget = await res.json();
+      const updatedBudget = await safeJson(res);
       dispatch({
         type: "UPDATE_BUDGET",
         payload: { id, updates: updatedBudget },
@@ -163,13 +172,8 @@ export function AppProvider({ children }) {
     try {
       const res = await fetch(`/api/budgets/${id}`, { method: "DELETE" });
 
-      if (!res.ok) {
-        const errorText = await res.text();
-        console.error("Delete failed:", res.status, errorText);
-        throw new Error("Failed to delete budget");
-      }
-
-      // dispatch your reducer or update state here if needed
+      await safeJson(res); // Will throw if not ok
+      dispatch({ type: "DELETE_BUDGET", payload: id });
     } catch (err) {
       console.error("Delete error:", err.message);
     }
